@@ -55,6 +55,26 @@ func getAllTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+func getTaskById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	task, ok := tasks[id]
+	if !ok {
+		http.Error(w, "task not found", http.StatusNotFound)
+		return
+	}
+
+	resp, err := json.Marshal(task)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(resp)
+	if err != nil {
+		return
+	}
+
+}
 
 func main() {
 	r := chi.NewRouter()
@@ -62,6 +82,7 @@ func main() {
 	// здесь регистрируйте ваши обработчики
 	// ...
 	r.Get("/tasks", getAllTasks)
+	r.Get("/tasks/{id}", getTaskById)
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		fmt.Printf("Ошибка при запуске сервера: %s", err.Error())
