@@ -46,13 +46,14 @@ var tasks = map[string]Task{
 func getAllTasks(w http.ResponseWriter, r *http.Request) {
 	resp, err := json.Marshal(tasks)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(resp)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 }
@@ -60,7 +61,7 @@ func getTaskById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	task, ok := tasks[id]
 	if !ok {
-		http.Error(w, "task not found", http.StatusNotFound)
+		http.Error(w, "task not found", http.StatusBadRequest)
 		return
 	}
 
@@ -72,6 +73,7 @@ func getTaskById(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(resp)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
@@ -88,6 +90,11 @@ func postTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := json.Unmarshal(buf.Bytes(), &task); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	_, isExist := tasks[task.ID]
+	if isExist {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -113,6 +120,7 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(resp)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
